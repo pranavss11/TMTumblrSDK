@@ -40,7 +40,10 @@ typedef void (^TMAuthenticationCallback)(NSString *, NSString *, NSError *);
 - (void)authenticate:(NSString *)URLScheme callback:(TMAuthenticationCallback)callback;
 
 - (void)postTokenRequest:(void(^)(NSURL *url, NSString *oauthToken))successBlock oauthCallBack:(NSString *)oauthCallBack errorBlock:(void(^)(NSError *error))errorBlock;
-
+- (void)postAccessTokenRequestWithPIN:(NSString *)pin
+                           oauthToken:(NSString *)oauthToken
+                         successBlock:(void(^)(NSString *oauthToken, NSString *oauthTokenSecret, NSString *userID, NSString *screenName))successBlock
+                           errorBlock:(void(^)(NSError *error))errorBlock;
 /**
  Authenticate via three-legged OAuth. This should be called from your `UIApplicationDelegate`'s
  `application:openURL:sourceApplication:annotation:` method in order to receive the tokens.
