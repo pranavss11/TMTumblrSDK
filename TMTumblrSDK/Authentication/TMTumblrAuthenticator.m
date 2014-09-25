@@ -90,6 +90,43 @@ NSDictionary *formEncodedDataToDictionary(NSData *data);
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:handler];
 }
 
+- (void)postTokenRequest:(void (^)(NSURL *, NSString *))successBlock oauthCallBack:(NSString *)oauthCallBack errorBlock:(void (^)(NSError *))errorBlock
+{
+    self.threeLeggedOAuthTokenSecret = nil;
+    NSString *tokenRequestURLString = [NSString stringWithFormat:@"https://www.tumblr.com/oauth/request_token?oauth_callback=%@",oauthCallBack];
+    
+    NSMutableURLRequest *request = mutableRequestWithURLString(tokenRequestURLString);
+    [[self class] signRequest:request withParameters:nil consumerKey:self.OAuthConsumerKey
+               consumerSecret:self.OAuthConsumerSecret token:nil tokenSecret:nil];
+    
+    NSURLConnectionCompletionHandler handler = ^(NSURLResponse *response, NSData *data, NSError *error) {
+        if (error) {
+            if (errorBlock)
+                errorBlock(error);
+            
+            return;
+        }
+        
+        NSInteger statusCode = ((NSHTTPURLResponse *)response).statusCode;
+        
+        if (statusCode == 200) {
+            NSDictionary *responseParameters = formEncodedDataToDictionary(data);
+            self.threeLeggedOAuthTokenSecret = responseParameters[@"oauth_token_secret"];
+            
+            NSURL *authURL = [NSURL URLWithString:
+                              [NSString stringWithFormat:@"https://www.tumblr.com/oauth/authorize?oauth_token=%@",
+                               responseParameters[@"oauth_token"]]];
+            
+            successBlock(authURL, responseParameters[@"oauth_token"]);
+        } else {
+            if (errorBlock)
+                errorBlock(errorWithStatusCode(statusCode));
+        }
+    };
+    
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:handler];
+}
+
 - (void)authenticate:(NSString *)URLScheme webView:(TMWebView *)webView callback:(TMAuthenticationCallback)callback {
     // Clear token secret in case authentication was previously started but not finished
     self.threeLeggedOAuthTokenSecret = nil;

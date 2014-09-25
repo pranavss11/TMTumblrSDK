@@ -39,17 +39,7 @@ typedef void (^TMAuthenticationCallback)(NSString *, NSString *, NSError *);
  */
 - (void)authenticate:(NSString *)URLScheme callback:(TMAuthenticationCallback)callback;
 
-/**
- Authenticate via three-legged OAuth with a given NSWebView/UIWebView.
- 
- Your `TMTumblrAuthenticator` instance's `handleOpenURL:` method must also be called from your `UIApplicationDelegate`'s
- `application:openURL:sourceApplication:annotation:` method in order to receive the tokens.
- 
- @param URLScheme a URL scheme that your application can handle requests to.
- 
- @param webView a UIWebView to open the authentication site in.
- */
-- (void)authenticate:(NSString *)URLScheme webView:(TMWebView *)webView callback:(TMAuthenticationCallback)callback;
+- (void)postTokenRequest:(void(^)(NSURL *url, NSString *oauthToken))successBlock oauthCallBack:(NSString *)oauthCallBack errorBlock:(void(^)(NSError *error))errorBlock;
 
 /**
  Authenticate via three-legged OAuth. This should be called from your `UIApplicationDelegate`'s
